@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://kit.fontawesome.com/0faddc1af8.js" crossorigin="anonymous"></script>
+    <title>Register - Nostalgic Novel</title>
+</head>
+<body class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+    
+    <div class="container main-content mt-4 mb-4">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="glass-panel text-center">
+                    <div class="text-start mb-3">
+                        <a th:href="@{/}" class="text-secondary text-decoration-none fw-semibold">
+                            <i class="fa-solid fa-arrow-left me-2"></i>Back to Home
+                        </a>
+                    </div>
+                    <div class="mb-4">
+                        <i class="fa-solid fa-book-open fa-3x text-primary mb-3"></i>
+                        <h2 class="fw-bold">Create Account</h2>
+                        <p class="text-secondary">Join The Nostalgic Novel Book Store</p>
+                    </div>
+
+                    <form th:action="@{/register}" th:object="${user}" method="post">
+                        
+                        <div th:if="${error}" class="alert alert-danger shadow-sm border-0 rounded-3 text-start">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i>
+                            <span th:text="${error}">Username already exists</span>
+                        </div>
+
+                        <!-- Name -->
+                        <div class="mb-3 text-start">
+                            <label for="name" class="form-label fw-semibold">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0" style="border: 2px solid var(--border-color); border-radius: 12px 0 0 12px;"><i class="fa-solid fa-id-card text-secondary"></i></span>
+                                <input type="text" class="form-control form-control-custom border-start-0" style="border-radius: 0 12px 12px 0 !important;"
+                                       id="name" th:field="*{name}" placeholder="Enter full name" required>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3 text-start">
+                            <label for="email" class="form-label fw-semibold">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0" style="border: 2px solid var(--border-color); border-radius: 12px 0 0 12px;"><i class="fa-solid fa-envelope text-secondary"></i></span>
+                                <input type="email" class="form-control form-control-custom border-start-0" style="border-radius: 0 12px 12px 0 !important;"
+                                       id="email" th:field="*{email}" placeholder="Enter email address" required>
+                            </div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="mb-3 text-start">
+                            <label for="phoneNumber" class="form-label fw-semibold">Phone Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0" style="border: 2px solid var(--border-color); border-radius: 12px 0 0 12px;"><i class="fa-solid fa-phone text-secondary"></i></span>
+                                <input type="tel" class="form-control form-control-custom border-start-0" style="border-radius: 0 12px 12px 0 !important;"
+                                       id="phoneNumber" th:field="*{phoneNumber}" placeholder="Enter phone number" required>
+                            </div>
+                        </div>
+
+                        <!-- Username -->
+                        <div class="mb-3 text-start">
+                            <label for="username" class="form-label fw-semibold">Username (for login)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0" style="border: 2px solid var(--border-color); border-radius: 12px 0 0 12px;"><i class="fa-solid fa-user text-secondary"></i></span>
+                                <input type="text" class="form-control form-control-custom border-start-0" style="border-radius: 0 12px 12px 0 !important;"
+                                       id="username" th:field="*{username}" placeholder="Choose a username" required>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-4 text-start">
+                            <label for="password" class="form-label fw-semibold">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0" style="border: 2px solid var(--border-color); border-radius: 12px 0 0 12px;"><i class="fa-solid fa-lock text-secondary"></i></span>
+                                <input type="password" class="form-control form-control-custom border-start-0" style="border-radius: 0 12px 12px 0 !important;"
+                                       id="password" th:field="*{password}" placeholder="Create a strong password" required>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-gradient-primary btn-lg">
+                                <i class="fa-solid fa-user-plus me-2"></i>Register Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <p class="text-secondary mb-0">Already have an account? 
+                        <a th:href="@{/login}" class="text-decoration-none fw-semibold" style="color: #667eea;">Sign In</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Apply saved theme automatically
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+</html>

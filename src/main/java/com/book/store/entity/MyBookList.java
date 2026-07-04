@@ -1,7 +1,10 @@
 package com.book.store.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -9,69 +12,53 @@ import jakarta.persistence.Table;
 public class MyBookList {
 
 	@Id
-	
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	private String name;
-	private String author;
-	private String price;
-	public MyBookList(int id, String name, String author, String price) {
+	
+	@ManyToOne
+	private Book book;
+	
+	@ManyToOne
+	private User user;
+	
+	private int quantity = 1;
+
+	public MyBookList(Book book, User user, int quantity) {
 		super();
-		this.id = id;
-		this.name = name;
-		this.author = author;
-		this.price = price;
+		this.book = book;
+		this.user = user;
+		this.quantity = quantity;
 	}
+
 	public MyBookList() {
 		super();
-		
 	}
-	/**
-	 * @return the id
-	 */
+
 	public int getId() {
 		return id;
 	}
-	/**
-	 * @param id the id to set
-	 */
 	public void setId(int id) {
 		this.id = id;
 	}
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
+
+	public Book getBook() {
+		return book;
 	}
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
+	public void setBook(Book book) {
+		this.book = book;
 	}
-	/**
-	 * @return the author
-	 */
-	public String getAuthor() {
-		return author;
+
+	public User getUser() {
+		return user;
 	}
-	/**
-	 * @param author the author to set
-	 */
-	public void setAuthor(String author) {
-		this.author = author;
+	public void setUser(User user) {
+		this.user = user;
 	}
-	/**
-	 * @return the price
-	 */
-	public String getPrice() {
-		return price;
+
+	public int getQuantity() {
+		return quantity;
 	}
-	/**
-	 * @param price the price to set
-	 */
-	public void setPrice(String price) {
-		this.price = price;
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
 	}
-	
 }
