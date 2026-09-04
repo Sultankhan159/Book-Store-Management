@@ -12,9 +12,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.Version;
 
 @Entity
-public class Book { /*   This Book class is a JPA (Java Persistence API) entity that represents the data
+public class Book extends Auditable { /*   This Book class is a JPA (Java Persistence API) entity that represents the data
                          model for a book in the application. The class maps to a database table, where each instance 
                          of Book corresponds to a row in that table.
                         */
@@ -42,6 +43,9 @@ public class Book { /*   This Book class is a JPA (Java Persistence API) entity 
 
 	@Column(length = 2000)
 	private String description;
+
+	@Version
+	private Integer version;
 	
 	/*This is a parameterized constructor for the class Book. 
 	 * It's used to create a Book object with all the properties (id, name, author, and price) initialized when the object is created.
@@ -136,7 +140,11 @@ public class Book { /*   This Book class is a JPA (Java Persistence API) entity 
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	
-	
-	
+
+	public Integer getVersion() {
+		return version;
+	}
+	public void setVersion(Integer version) {
+		this.version = version;
+	}
 }

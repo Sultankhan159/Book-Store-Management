@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reviews")
-public class Review {
+public class Review extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,8 +28,6 @@ public class Review {
     @Column(length = 2000)
     private String comment;
 
-    private LocalDateTime createdAt;
-
     public Review() {
         super();
     }
@@ -40,7 +38,7 @@ public class Review {
         this.user = user;
         this.rating = rating;
         this.comment = comment;
-        this.createdAt = createdAt;
+        setCreatedAt(createdAt);
     }
 
     public Long getId() {
@@ -81,13 +79,5 @@ public class Review {
 
     public void setComment(String comment) {
         this.comment = comment;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

@@ -2,8 +2,12 @@ package com.book.store.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.time.LocalDateTime;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +16,8 @@ import com.book.store.entity.User;
 import com.book.store.entity.MyBookList;
 import com.book.store.entity.Order;
 import com.book.store.entity.OrderItem;
+import com.book.store.event.OrderPlacedEvent;
+import com.book.store.exception.ConflictException;
 import com.book.store.repository.MyBookRepository;
 import com.book.store.repository.OrderRepository;
 
@@ -24,7 +30,15 @@ public class MyBookListService {
 
 	@Autowired
 	private OrderRepository orderRepository;
-	
+
+	@Autowired(required = false)
+	private RedissonClient redissonClient;
+
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
+
+	private final java.util.concurrent.ConcurrentHashMap<Long, Object> localUserLocks = new java.util.concurrent.ConcurrentHashMap<>();
+
 	public void saveMyBooks(MyBookList book) {
 		mybook.save(book);
 	}
@@ -79,6 +93,41 @@ public class MyBookListService {
 	}
 	
 	public Order checkout(User user) {
+		String lockKey = "lock:checkout:user:" + user.getId();
+		RLock lock = null;
+		boolean acquired = false;
+		if (redissonClient != null) {
+			try {
+				lock = redissonClient.getLock(lockKey);
+				acquired = lock.tryLock(5, 15, TimeUnit.SECONDS);
+				if (!acquired) {
+					throw new ConflictException("Checkout is currently being processed by another concurrent request for this user. Duplicate order prevented.");
+				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new ConflictException("Checkout interrupted while waiting for lock.");
+			} catch (Exception e) {
+				// Redis connectivity fallback
+				lock = null;
+			}
+		}
+
+		if (lock == null) {
+			synchronized (localUserLocks.computeIfAbsent(user.getId(), k -> new Object())) {
+				return executeCheckoutTransaction(user);
+			}
+		}
+
+		try {
+			return executeCheckoutTransaction(user);
+		} finally {
+			if (acquired && lock.isHeldByCurrentThread()) {
+				lock.unlock();
+			}
+		}
+	}
+
+	private Order executeCheckoutTransaction(User user) {
 		List<MyBookList> cartItems = mybook.findByUser(user);
 		if (cartItems.isEmpty()) {
 			return null;
@@ -90,7 +139,6 @@ public class MyBookListService {
 			try {
 				price = Double.parseDouble(item.getBook().getPrice());
 			} catch (Exception e) {
-				// Handle fallback if price is not numeric (e.g. "$250")
 				String cleanPrice = item.getBook().getPrice().replaceAll("[^0-9.]", "");
 				if (!cleanPrice.isEmpty()) {
 					price = Double.parseDouble(cleanPrice);
@@ -117,6 +165,10 @@ public class MyBookListService {
 		
 		Order savedOrder = orderRepository.save(order);
 		mybook.deleteByUser(user); // clear cart
+
+		if (eventPublisher != null) {
+			eventPublisher.publishEvent(new OrderPlacedEvent(this, savedOrder));
+		}
 		
 		return savedOrder;
 	}
