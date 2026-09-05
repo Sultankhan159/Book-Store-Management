@@ -6,13 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RestControllerAdvice
+@RestControllerAdvice(annotations = RestController.class)
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)

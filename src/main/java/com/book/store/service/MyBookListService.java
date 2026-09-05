@@ -9,7 +9,9 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.book.store.entity.Book;
 import com.book.store.entity.User;
@@ -36,6 +38,9 @@ public class MyBookListService {
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	private TransactionTemplate transactionTemplate;
 
 	private final java.util.concurrent.ConcurrentHashMap<Long, Object> localUserLocks = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -92,6 +97,7 @@ public class MyBookListService {
 		}
 	}
 	
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public Order checkout(User user) {
 		String lockKey = "lock:checkout:user:" + user.getId();
 		RLock lock = null;
@@ -114,12 +120,12 @@ public class MyBookListService {
 
 		if (lock == null) {
 			synchronized (localUserLocks.computeIfAbsent(user.getId(), k -> new Object())) {
-				return executeCheckoutTransaction(user);
+				return transactionTemplate.execute(status -> executeCheckoutTransaction(user));
 			}
 		}
 
 		try {
-			return executeCheckoutTransaction(user);
+			return transactionTemplate.execute(status -> executeCheckoutTransaction(user));
 		} finally {
 			if (acquired && lock.isHeldByCurrentThread()) {
 				lock.unlock();
