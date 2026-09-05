@@ -67,7 +67,7 @@ jobs:
 
       - name: Test Container Startup & Health Check
         run: |
-          docker run -d --name bookstore-test -p 8282:8282 bookstore-management:ci-test
+          docker run -d --name bookstore-test -e PORT=8282 -p 8282:8282 bookstore-management:ci-test
           echo "Waiting for Spring Boot application to bootstrap..."
           for i in {1..30}; do
             if curl -s -f http://localhost:8282/actuator/health | grep '"status":"UP"'; then

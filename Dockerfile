@@ -36,8 +36,9 @@ RUN chown -R springuser:spring /app
 # Switch to non-root user
 USER springuser:spring
 
-# Default port (overridden dynamically by Render / Railway via $PORT)
-ENV PORT=8282
+# Default port: Render expects port 10000 by default (overridden dynamically via $PORT)
+ENV PORT=10000
+EXPOSE 10000
 EXPOSE 8282
 
 # JVM container memory tuning: strict limits for 512MB free tier containers
