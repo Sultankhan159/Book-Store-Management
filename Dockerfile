@@ -4,9 +4,12 @@
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Cache Maven dependencies layer
+# Optimize Maven memory usage for Render 512MB free tier
+ENV MAVEN_OPTS="-Xmx384m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+
+# Copy pom.xml and dependencies
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn -B dependency:resolve || true
 
 # Compile and package application (skip tests as CI runs them)
 COPY src ./src
@@ -37,8 +40,8 @@ USER springuser:spring
 ENV PORT=8282
 EXPOSE 8282
 
-# JVM container memory tuning: auto-adapts to container memory limits
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+# JVM container memory tuning: strict limits for 512MB free tier containers
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Xmx350m -Djava.security.egd=file:/dev/./urandom"
 
 # Built-in container health check probe
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
