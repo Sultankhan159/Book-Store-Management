@@ -110,6 +110,11 @@
 			<artifactId>redisson-spring-boot-starter</artifactId>
 			<version>3.28.0</version>
 		</dependency>
+		<!-- Spring Boot Actuator for Cloud Health Probes & Metrics -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

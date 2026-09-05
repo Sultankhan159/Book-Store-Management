@@ -45,7 +45,8 @@ public class SecurityConfig {
                     "/", "/home", "/login", "/register", "/css/**", "/images/**", "/js/**",
                     "/book/cover/**", "/available_books", "/book/details/**",
                     "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html",
-                    "/api/v1/books/**", "/api/v1/auth/**"
+                    "/api/v1/books/**", "/api/v1/auth/**",
+                    "/actuator/**"
                 ).permitAll()
                 .requestMatchers("/my_books", "/myList/**", "/cart/**", "/orders", "/addReview/**", "/api/v1/cart/**", "/api/v1/orders/**", "/api/v1/users/me").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/book_rsgister", "/book_register", "/save", "/editBook/**", "/deleteBook/**", "/admin/**", "/api/v1/users").hasRole("ADMIN")

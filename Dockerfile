@@ -1,24 +1,48 @@
-# Stage 1: Build the application
+# ==========================================
+# Stage 1: Build the application package
+# ==========================================
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy the pom.xml and download dependencies to cache them
+# Cache Maven dependencies layer
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# Copy the source code and build the application package
+# Compile and package application (skip tests as CI runs them)
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Stage 2: Run the application
+# ==========================================
+# Stage 2: Hardened, production-ready runtime
+# ==========================================
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copy the built jar from the build stage
+# Install curl for cloud container health checks
+RUN apk --no-cache add curl
+
+# Create non-root system group and user for security compliance
+RUN addgroup -S spring && adduser -S springuser -G spring
+
+# Copy compiled JAR artifact from build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose the application port
+# Set ownership to non-root user
+RUN chown -R springuser:spring /app
+
+# Switch to non-root user
+USER springuser:spring
+
+# Default port (overridden dynamically by Render / Railway via $PORT)
+ENV PORT=8282
 EXPOSE 8282
 
-# Start the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# JVM container memory tuning: auto-adapts to container memory limits
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+
+# Built-in container health check probe
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:${PORT}/actuator/health || exit 1
+
+# Execute Spring Boot application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
