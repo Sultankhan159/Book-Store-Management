@@ -39,12 +39,19 @@ public class SecurityConfig {
     //This method defines security rules.
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/home", "/login", "/register", "/css/**", "/images/**", "/js/**", "/book/cover/**", "/available_books", "/book/details/**").permitAll()
-                .requestMatchers("/my_books", "/myList/**", "/cart/**", "/orders", "/addReview/**").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/book_rsgister", "/book_register", "/save", "/editBook/**", "/deleteBook/**", "/admin/**").hasRole("ADMIN")
+                .requestMatchers(
+                    "/", "/home", "/login", "/register", "/css/**", "/images/**", "/js/**",
+                    "/book/cover/**", "/available_books", "/book/details/**",
+                    "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html",
+                    "/api/v1/books/**", "/api/v1/auth/**"
+                ).permitAll()
+                .requestMatchers("/my_books", "/myList/**", "/cart/**", "/orders", "/addReview/**", "/api/v1/cart/**", "/api/v1/orders/**", "/api/v1/users/me").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/book_rsgister", "/book_register", "/save", "/editBook/**", "/deleteBook/**", "/admin/**", "/api/v1/users").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
+            .httpBasic(org.springframework.security.config.Customizer.withDefaults())
             .formLogin(form -> form
                 .loginPage("/login")
                 .defaultSuccessUrl("/available_books", true)
