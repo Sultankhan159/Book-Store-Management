@@ -7,6 +7,7 @@ public class BookResponse {
     private String price;
     private String category;
     private String description;
+    private int stock;
 
     // Getters and Setters
     public int getId() { return id; }
@@ -26,4 +27,7 @@ public class BookResponse {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public int getStock() { return stock; }
+    public void setStock(int stock) { this.stock = stock; }
 }

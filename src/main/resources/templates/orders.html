@@ -23,6 +23,7 @@
             <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
             <li class="nav-item"><a class="nav-link" th:href="@{/available_books}">Available Books</a></li>
             <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/my_books}">My Cart</a></li>
+            <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link text-danger" th:href="@{/wishlist}"><i class="fa-solid fa-heart me-1"></i>Wishlist</a></li>
             <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link active" th:href="@{/orders}">My Orders</a></li>
             <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link text-danger fw-bold" th:href="@{/admin/dashboard}">Admin Dashboard</a></li>
             <li class="nav-item" sec:authorize="!isAuthenticated()">
@@ -82,7 +83,11 @@
                     <span class="fw-medium" th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm')}">Date</span>
                 </div>
                 <div class="col-md-3 text-md-end mt-2 mt-md-0">
-                    <span class="badge bg-success px-3 py-2 rounded-pill" th:text="${order.status}">COMPLETED</span>
+                    <span class="badge px-3 py-2 rounded-pill"
+                          th:classappend="${order.status == 'DELIVERED' or order.status == 'COMPLETED'} ? 'bg-success' : (${order.status == 'SHIPPED'} ? 'bg-warning text-dark' : (${order.status == 'CANCELLED'} ? 'bg-danger' : (${order.status == 'PROCESSING'} ? 'bg-info text-white' : 'bg-primary')))"
+                          th:text="${order.status}">
+                        PLACED
+                    </span>
                 </div>
             </div>
 
@@ -107,10 +112,15 @@
 
             <hr class="my-3" style="border-color: var(--border-color);"/>
 
-            <!-- Order Total -->
+            <!-- Order Total & Actions -->
             <div class="d-flex justify-content-between align-items-center">
-                <span class="fw-bold">Total Amount paid</span>
-                <span class="h4 text-primary fw-extrabold mb-0" th:text="'$' + ${order.totalAmount}">$25.00</span>
+                <div>
+                    <span class="fw-bold d-block">Total Amount paid</span>
+                    <span class="h4 text-primary fw-extrabold mb-0" th:text="'$' + ${order.totalAmount}">$25.00</span>
+                </div>
+                <a th:href="@{/orders/invoice/{id}(id=${order.id})}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                    <i class="fa-solid fa-receipt me-1"></i>View Invoice
+                </a>
             </div>
 
         </div>

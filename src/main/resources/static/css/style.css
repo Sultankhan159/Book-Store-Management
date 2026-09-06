@@ -274,3 +274,51 @@ body.dark-mode .theme-toggle-btn:hover {
   font-size: 1.5rem;
   margin-right: 1rem;
 }
+
+/* Wishlist Heart Button */
+.btn-wishlist {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  color: #e63946;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-wishlist:hover {
+  transform: scale(1.15);
+  background: #e63946;
+  color: white;
+}
+
+.btn-wishlist.active {
+  background: #e63946;
+  color: white;
+}
+
+/* Invoice Print Styles */
+@media print {
+  .no-print, nav, footer, .btn {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    padding: 0 !important;
+  }
+  .invoice-box {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}

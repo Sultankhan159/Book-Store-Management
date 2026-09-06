@@ -25,6 +25,7 @@
             <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
             <li class="nav-item"><a class="nav-link" th:href="@{/available_books}">Available Books</a></li>
             <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/my_books}">My Cart</a></li>
+            <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link text-danger" th:href="@{/wishlist}"><i class="fa-solid fa-heart me-1"></i>Wishlist</a></li>
             <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/orders}">My Orders</a></li>
             <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link active text-danger fw-bold" th:href="@{/admin/dashboard}">Admin Dashboard</a></li>
             <li class="nav-item" sec:authorize="!isAuthenticated()">
@@ -46,13 +47,22 @@
     <!-- Main Container -->
     <div class="container main-content mt-4">
         
-        <div class="mb-4">
-            <a th:href="@{/}" class="btn btn-outline-secondary">
-                <i class="fa-solid fa-arrow-left me-2"></i>Back to Home
-            </a>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <a th:href="@{/}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Back to Home
+                </a>
+                <h2 class="fw-bold mb-0"><i class="fa-solid fa-chart-pie text-primary me-2"></i>Admin Dashboard</h2>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/admin/orders}" class="btn btn-gradient-primary">
+                    <i class="fa-solid fa-boxes-packing me-1"></i>Manage Orders
+                </a>
+                <a th:href="@{/book_rsgister}" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-plus me-1"></i>Add Book
+                </a>
+            </div>
         </div>
-
-        <h2 class="fw-bold mb-4"><i class="fa-solid fa-chart-pie text-primary me-2"></i>Admin Dashboard</h2>
 
         <!-- Stats row -->
         <div class="row mb-5">

@@ -27,6 +27,7 @@ import com.book.store.service.BookService;
 import com.book.store.service.MyBookListService;
 import com.book.store.service.UserService;
 import com.book.store.service.ReviewService;
+import com.book.store.service.WishlistService;
 
 @Controller    
 public class BookController {
@@ -42,6 +43,9 @@ public class BookController {
 
 	@Autowired
 	private ReviewService reviewService;
+
+	@Autowired
+	private WishlistService wishlistService;
 	
 	@GetMapping("/")     
 	public String home() {  
@@ -122,6 +126,9 @@ public class BookController {
 	@GetMapping("/book/details/{id}")
 	public String getBookDetails(@PathVariable("id") int id, Model model, Principal principal) {
 		Book b = service.getBookById(id);
+		if (b == null) {
+			return "redirect:/available_books";
+		}
 		List<Review> reviews = reviewService.getReviewsForBook(b);
 		Double avgRating = reviewService.getAverageRating(b);
 		
@@ -129,9 +136,16 @@ public class BookController {
 		model.addAttribute("reviews", reviews);
 		model.addAttribute("avgRating", avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0);
 		
+		boolean inWishlist = false;
 		if (principal != null) {
 			model.addAttribute("currentUser", principal.getName());
+			User user = userService.findByUsername(principal.getName());
+			if (user != null) {
+				inWishlist = wishlistService.isBookInWishlist(b, user);
+			}
 		}
+		model.addAttribute("inWishlist", inWishlist);
+		model.addAttribute("relatedBooks", service.getRelatedBooks(b));
 		
 		return "bookDetails";
 	}
@@ -189,13 +203,18 @@ public class BookController {
 	}
 	
 	@GetMapping("/myList/{id}")      
-	public String getMyList(@PathVariable("id") int id, Principal principal) {
+	public String getMyList(@PathVariable("id") int id, Principal principal, org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
 		if (principal == null) {
 			return "redirect:/login";
 		}
 		Book b = service.getBookById(id);
 		User user = userService.findByUsername(principal.getName());
-		myBookService.addToCart(b, user);
+		try {
+			myBookService.addToCart(b, user);
+			redirectAttributes.addFlashAttribute("successMessage", "'" + b.getName() + "' added to your cart!");
+		} catch (Exception ex) {
+			redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+		}
 		return "redirect:/my_books";    
 	}
 	

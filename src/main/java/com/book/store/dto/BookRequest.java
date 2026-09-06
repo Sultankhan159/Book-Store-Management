@@ -19,6 +19,9 @@ public class BookRequest {
     @Size(max = 2000, message = "Description must be less than 2000 characters")
     private String description;
 
+    @jakarta.validation.constraints.Min(value = 0, message = "Stock must be at least 0")
+    private int stock = 50;
+
     // Getters and Setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -34,4 +37,7 @@ public class BookRequest {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public int getStock() { return stock; }
+    public void setStock(int stock) { this.stock = stock; }
 }

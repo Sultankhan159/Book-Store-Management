@@ -20,6 +20,7 @@ import com.book.store.entity.Order;
 import com.book.store.entity.OrderItem;
 import com.book.store.event.OrderPlacedEvent;
 import com.book.store.exception.ConflictException;
+import com.book.store.repository.BookRepository;
 import com.book.store.repository.MyBookRepository;
 import com.book.store.repository.OrderRepository;
 
@@ -32,6 +33,9 @@ public class MyBookListService {
 
 	@Autowired
 	private OrderRepository orderRepository;
+
+	@Autowired
+	private BookRepository bookRepository;
 
 	@Autowired(required = false)
 	private RedissonClient redissonClient;
@@ -57,9 +61,15 @@ public class MyBookListService {
 	}
 	
 	public void addToCart(Book book, User user) {
+		if (book.getStock() <= 0) {
+			throw new ConflictException("Book '" + book.getName() + "' is out of stock!");
+		}
 		Optional<MyBookList> existing = mybook.findByUserAndBook(user, book);
 		if (existing.isPresent()) {
 			MyBookList cartItem = existing.get();
+			if (cartItem.getQuantity() + 1 > book.getStock()) {
+				throw new ConflictException("Cannot add more: Only " + book.getStock() + " copies available in stock!");
+			}
 			cartItem.setQuantity(cartItem.getQuantity() + 1);
 			mybook.save(cartItem);
 		} else {
@@ -76,6 +86,9 @@ public class MyBookListService {
 				if (quantity <= 0) {
 					mybook.delete(item);
 				} else {
+					if (quantity > item.getBook().getStock()) {
+						throw new ConflictException("Cannot set quantity to " + quantity + ": Only " + item.getBook().getStock() + " copies in stock!");
+					}
 					item.setQuantity(quantity);
 					mybook.save(item);
 				}
@@ -139,6 +152,15 @@ public class MyBookListService {
 			return null;
 		}
 		
+		// Stock validation before checkout using fresh database records
+		for (MyBookList item : cartItems) {
+			Book book = bookRepository.findById(item.getBook().getId()).orElse(null);
+			if (book == null || book.getStock() < item.getQuantity()) {
+				int available = book != null ? book.getStock() : 0;
+				throw new ConflictException("Insufficient stock for '" + item.getBook().getName() + "'. Available: " + available + ", In Cart: " + item.getQuantity());
+			}
+		}
+
 		double totalAmount = 0.0;
 		for (MyBookList item : cartItems) {
 			double price = 0.0;
@@ -153,7 +175,7 @@ public class MyBookListService {
 			totalAmount += price * item.getQuantity();
 		}
 		
-		Order order = new Order(user, LocalDateTime.now(), totalAmount, "COMPLETED");
+		Order order = new Order(user, LocalDateTime.now(), totalAmount, "PLACED");
 		
 		for (MyBookList item : cartItems) {
 			double price = 0.0;
@@ -165,7 +187,12 @@ public class MyBookListService {
 					price = Double.parseDouble(cleanPrice);
 				}
 			}
-			OrderItem orderItem = new OrderItem(order, item.getBook(), item.getQuantity(), price);
+
+			Book book = bookRepository.findById(item.getBook().getId()).orElse(item.getBook());
+			book.setStock(book.getStock() - item.getQuantity());
+			bookRepository.save(book);
+
+			OrderItem orderItem = new OrderItem(order, book, item.getQuantity(), price);
 			order.getItems().add(orderItem);
 		}
 		
@@ -181,6 +208,26 @@ public class MyBookListService {
 	
 	public List<Order> getUserOrders(User user) {
 		return orderRepository.findByUserOrderByOrderDateDesc(user);
+	}
+
+	public List<Order> getAllOrders(String status) {
+		if (status != null && !status.trim().isEmpty() && !status.equalsIgnoreCase("ALL")) {
+			return orderRepository.findByStatusOrderByOrderDateDesc(status.toUpperCase());
+		}
+		return orderRepository.findAllByOrderByOrderDateDesc();
+	}
+
+	public Order updateOrderStatus(Long orderId, String newStatus) {
+		Order order = orderRepository.findById(orderId).orElse(null);
+		if (order != null) {
+			order.setStatus(newStatus.toUpperCase());
+			return orderRepository.save(order);
+		}
+		return null;
+	}
+
+	public Order getOrderById(Long orderId) {
+		return orderRepository.findById(orderId).orElse(null);
 	}
 	
 	// Analytics for admin

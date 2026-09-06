@@ -27,6 +27,8 @@ public interface BookRepository extends JpaRepository<Book,Integer>{
     
     @Query("SELECT DISTINCT b.category FROM Book b WHERE b.category IS NOT NULL AND b.category != ''")
     List<String> findDistinctCategories();
+
+    List<Book> findByCategoryIgnoreCase(String category);
 }
 
 

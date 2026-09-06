@@ -44,6 +44,9 @@ public class Book extends Auditable { /*   This Book class is a JPA (Java Persis
 	@Column(length = 2000)
 	private String description;
 
+	@Column(nullable = false)
+	private int stock = 50;
+
 	@Version
 	private Integer version;
 	
@@ -146,5 +149,12 @@ public class Book extends Auditable { /*   This Book class is a JPA (Java Persis
 	}
 	public void setVersion(Integer version) {
 		this.version = version;
+	}
+
+	public int getStock() {
+		return stock;
+	}
+	public void setStock(int stock) {
+		this.stock = stock;
 	}
 }

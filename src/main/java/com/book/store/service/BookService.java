@@ -53,4 +53,14 @@ public class BookService {
 	public void deleteById(int id){
 		bRepo.deleteById(id);            //Deletes a book from the database based on its id.
 	}
+
+	public List<Book> getRelatedBooks(Book book) {
+		if (book == null || book.getCategory() == null || book.getCategory().trim().isEmpty()) {
+			return java.util.Collections.emptyList();
+		}
+		return bRepo.findByCategoryIgnoreCase(book.getCategory()).stream()
+				.filter(b -> b.getId() != book.getId())
+				.limit(4)
+				.collect(java.util.stream.Collectors.toList());
+	}
 }

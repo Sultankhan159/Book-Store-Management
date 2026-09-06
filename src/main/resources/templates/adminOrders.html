@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://kit.fontawesome.com/0faddc1af8.js" crossorigin="anonymous"></script>
+    <title>Admin - Manage Customer Orders</title>
+  </head>
+  <body>
+  
+    <!-- Header / Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+      <div class="container">
+        <a class="navbar-brand" th:href="@{/}">The Nostalgic Novel</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto align-items-center">
+            <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/available_books}">Available Books</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/my_books}">My Cart</a></li>
+            <li class="nav-item"><a class="nav-link text-danger" th:href="@{/wishlist}"><i class="fa-solid fa-heart me-1"></i>Wishlist</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link active text-danger fw-bold" th:href="@{/admin/orders}"><i class="fa-solid fa-boxes-packing me-1"></i>Orders</a></li>
+            <li class="nav-item" sec:authorize="isAuthenticated()">
+              <form th:action="@{/logout}" method="post" class="d-inline">
+                <button class="btn btn-link nav-link p-0" type="submit"><i class="fa-solid fa-right-from-bracket me-1"></i>Logout</button>
+              </form>
+            </li>
+            <li class="nav-item ms-2">
+              <button class="theme-toggle-btn" id="themeToggle"><i class="fa-solid fa-moon"></i></button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container main-content mt-4">
+        
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+            <div>
+                <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+                <h2 class="fw-bold mb-1"><i class="fa-solid fa-boxes-packing text-primary me-2"></i>Manage Customer Orders</h2>
+                <span class="text-secondary" th:text="'Total Orders placed: ' + ${totalOrdersCount}">Total Orders: 0</span>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        <div th:if="${successMessage}" class="alert alert-success shadow-sm border-0 rounded-3 mb-4">
+            <i class="fa-solid fa-circle-check me-2"></i><span th:text="${successMessage}">Success message</span>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger shadow-sm border-0 rounded-3 mb-4">
+            <i class="fa-solid fa-circle-exclamation me-2"></i><span th:text="${errorMessage}">Error message</span>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <a th:href="@{/admin/orders(status='ALL')}" class="btn btn-sm rounded-pill"
+               th:classappend="${selectedStatus == 'ALL'} ? 'btn-gradient-primary' : 'btn-outline-secondary'">
+               All Orders
+            </a>
+            <a th:href="@{/admin/orders(status='PLACED')}" class="btn btn-sm rounded-pill"
+               th:classappend="${selectedStatus == 'PLACED'} ? 'btn-primary' : 'btn-outline-primary'">
+               Placed
+            </a>
+            <a th:href="@{/admin/orders(status='PROCESSING')}" class="btn btn-sm rounded-pill"
+               th:classappend="${selectedStatus == 'PROCESSING'} ? 'btn-info text-white' : 'btn-outline-info'">
+               Processing
+            </a>
+            <a th:href="@{/admin/orders(status='SHIPPED')}" class="btn btn-sm rounded-pill"
+               th:classappend="${selectedStatus == 'SHIPPED'} ? 'btn-warning text-dark' : 'btn-outline-warning'">
+               Shipped
+            </a>
+            <a th:href="@{/admin/orders(status='DELIVERED')}" class="btn btn-sm rounded-pill"
+               th:classappend="${selectedStatus == 'DELIVERED'} ? 'btn-success' : 'btn-outline-success'">
+               Delivered
+            </a>
+            <a th:href="@{/admin/orders(status='CANCELLED')}" class="btn btn-sm rounded-pill"
+               th:classappend="${selectedStatus == 'CANCELLED'} ? 'btn-danger' : 'btn-outline-danger'">
+               Cancelled
+            </a>
+        </div>
+
+        <!-- Orders Table -->
+        <div th:if="${orders.isEmpty()}" class="glass-panel text-center py-5">
+            <i class="fa-solid fa-inbox fa-3x text-secondary mb-3"></i>
+            <h4 class="text-secondary">No Orders Found</h4>
+            <p class="text-secondary mb-0">No customer orders matching the status filter: <strong th:text="${selectedStatus}">ALL</strong>.</p>
+        </div>
+
+        <div th:if="${!orders.isEmpty()}" class="glass-panel p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background: rgba(0,0,0,0.03);">
+                        <tr class="text-secondary small">
+                            <th scope="col" class="ps-4">ORDER ID</th>
+                            <th scope="col">CUSTOMER</th>
+                            <th scope="col">DATE</th>
+                            <th scope="col">ITEMS</th>
+                            <th scope="col">TOTAL</th>
+                            <th scope="col">STATUS</th>
+                            <th scope="col">CHANGE STATUS</th>
+                            <th scope="col" class="pe-4 text-end">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="o : ${orders}">
+                            <td class="ps-4 fw-bold" th:text="'#' + ${o.id}">#101</td>
+                            <td>
+                                <span class="fw-semibold d-block" th:text="${o.user.name != null && !o.user.name.isEmpty()} ? ${o.user.name} : ${o.user.username}">Customer</span>
+                                <span class="text-secondary small" th:text="${o.user.email != null ? o.user.email : o.user.username}">user@test.com</span>
+                            </td>
+                            <td class="text-secondary small" th:text="${#temporals.format(o.orderDate, 'yyyy-MM-dd HH:mm')}">Date</td>
+                            <td>
+                                <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-1" th:text="${o.items.size()} + ' item(s)'">1 item</span>
+                            </td>
+                            <td class="fw-bold text-primary" th:text="'$' + ${#numbers.formatDecimal(o.totalAmount, 1, 2)}">$25.00</td>
+                            <td>
+                                <span class="badge px-3 py-2 rounded-pill"
+                                      th:classappend="${o.status == 'DELIVERED' or o.status == 'COMPLETED'} ? 'bg-success' : (${o.status == 'SHIPPED'} ? 'bg-warning text-dark' : (${o.status == 'CANCELLED'} ? 'bg-danger' : (${o.status == 'PROCESSING'} ? 'bg-info text-white' : 'bg-primary')))"
+                                      th:text="${o.status}">
+                                    PLACED
+                                </span>
+                            </td>
+                            <td>
+                                <form th:action="@{/admin/orders/{id}/status(id=${o.id})}" method="post" class="d-flex align-items-center gap-1">
+                                    <select name="status" class="form-select form-select-sm" style="width: 130px; border-radius: 8px;">
+                                        <option value="PLACED" th:selected="${o.status == 'PLACED'}">PLACED</option>
+                                        <option value="PROCESSING" th:selected="${o.status == 'PROCESSING'}">PROCESSING</option>
+                                        <option value="SHIPPED" th:selected="${o.status == 'SHIPPED'}">SHIPPED</option>
+                                        <option value="DELIVERED" th:selected="${o.status == 'DELIVERED'}">DELIVERED</option>
+                                        <option value="CANCELLED" th:selected="${o.status == 'CANCELLED'}">CANCELLED</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Update status">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <a th:href="@{/orders/invoice/{id}(id=${o.id})}" class="btn btn-sm btn-outline-secondary" title="View / Print Receipt">
+                                    <i class="fa-solid fa-receipt me-1"></i>Receipt
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center p-5 mt-5">
+        <div class="footer-sect text-secondary">CopyRight @ 2026. All Rights Reserved</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeToggle.innerHTML = '<i class="fa-solid fa-sun text-warning"></i>';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        themeToggle.addEventListener('click', () => {
+            setTheme(document.body.classList.contains('dark-mode') ? 'light' : 'dark');
+        });
+        setTheme(localStorage.getItem('theme') || 'light');
+    </script>
+  </body>
+</html>

@@ -23,6 +23,7 @@
             <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
             <li class="nav-item"><a class="nav-link active" th:href="@{/available_books}">Available Books</a></li>
             <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/my_books}">My Cart</a></li>
+            <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link text-danger" th:href="@{/wishlist}"><i class="fa-solid fa-heart me-1"></i>Wishlist</a></li>
             <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/orders}">My Orders</a></li>
             <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link text-danger fw-bold" th:href="@{/admin/dashboard}">Admin Dashboard</a></li>
             <li class="nav-item" sec:authorize="!isAuthenticated()">
@@ -62,9 +63,23 @@
                     
                     <!-- Action buttons -->
                     <div class="d-grid gap-2" style="max-width: 280px; margin: 0 auto;">
-                        <a sec:authorize="isAuthenticated()" th:href="@{/myList/{id}(id=${book.id})}" class="btn btn-gradient-primary btn-lg">
+                        <a th:if="${book.stock > 0}" sec:authorize="isAuthenticated()" th:href="@{/myList/{id}(id=${book.id})}" class="btn btn-gradient-primary btn-lg">
                             <i class="fa-solid fa-cart-shopping me-2"></i>Add to Cart
                         </a>
+                        <button th:if="${book.stock <= 0}" class="btn btn-secondary btn-lg" disabled>
+                            <i class="fa-solid fa-ban me-2"></i>Out of Stock
+                        </button>
+                        
+                        <!-- Wishlist Toggle -->
+                        <div sec:authorize="isAuthenticated()">
+                            <a th:if="${!inWishlist}" th:href="@{/wishlist/add/{id}(id=${book.id})}" class="btn btn-outline-danger w-100">
+                                <i class="fa-regular fa-heart me-2"></i>Save to Wishlist
+                            </a>
+                            <a th:if="${inWishlist}" th:href="@{/wishlist/remove/{id}(id=${book.id})}" class="btn btn-danger w-100">
+                                <i class="fa-solid fa-heart me-2"></i>In Wishlist (Remove)
+                            </a>
+                        </div>
+
                         <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="btn btn-outline-primary btn-lg">
                             <i class="fa-solid fa-right-to-bracket me-2"></i>Login to Purchase
                         </a>
@@ -77,9 +92,21 @@
 
                 <!-- Right Description Column -->
                 <div class="col-md-8">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge bg-primary px-3 py-2 rounded-pill me-2" th:text="${book.category != null && book.category != '' ? book.category : 'General'}">Category</span>
-                        <div class="text-warning">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <span class="badge bg-primary px-3 py-2 rounded-pill" th:text="${book.category != null && book.category != '' ? book.category : 'General'}">Category</span>
+                        
+                        <!-- Stock Status Badge -->
+                        <span th:if="${book.stock > 10}" class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+                            <i class="fa-solid fa-boxes-stacked me-1"></i>In Stock (<span th:text="${book.stock}"></span> available)
+                        </span>
+                        <span th:if="${book.stock > 0 and book.stock <= 10}" class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2 rounded-pill">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>Only <span th:text="${book.stock}"></span> left in stock!
+                        </span>
+                        <span th:if="${book.stock <= 0}" class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill">
+                            <i class="fa-solid fa-ban me-1"></i>Out of Stock
+                        </span>
+
+                        <div class="text-warning ms-auto">
                             <i class="fa-solid fa-star me-1"></i>
                             <span class="fw-bold text-dark" th:text="${avgRating > 0 ? avgRating : 'No ratings'}">4.5</span>
                         </div>
@@ -171,6 +198,34 @@
                 </div>
             </div>
 
+        </div>
+
+        <!-- You May Also Like (Recommendations) Section -->
+        <div th:if="${relatedBooks != null and !relatedBooks.isEmpty()}" class="mt-5">
+            <h3 class="fw-bold mb-4"><i class="fa-solid fa-sparkles text-primary me-2"></i>You May Also Like</h3>
+            <div class="row">
+                <div th:each="rb : ${relatedBooks}" class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                    <div class="book-card position-relative">
+                        <span class="book-card-badge" th:text="${rb.category}">Category</span>
+                        <a th:href="@{/book/details/{id}(id=${rb.id})}" class="book-card-img-wrapper d-block">
+                            <img th:if="${rb.coverImage != null}" th:src="@{/book/cover/{id}(id=${rb.id})}" alt="Cover" class="book-card-img"/>
+                            <img th:if="${rb.coverImage == null}" src="/images/book.jpeg" alt="Cover" class="book-card-img"/>
+                        </a>
+                        <div class="book-card-body">
+                            <a th:href="@{/book/details/{id}(id=${rb.id})}" class="text-decoration-none">
+                                <h6 class="book-card-title text-truncate" th:text="${rb.name}">Book Name</h6>
+                            </a>
+                            <span class="book-card-author text-truncate d-block" th:text="'By ' + ${rb.author}">Author</span>
+                            <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+                                <span class="book-card-price" th:text="'$' + ${rb.price}">$25.00</span>
+                                <a th:href="@{/book/details/{id}(id=${rb.id})}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>

@@ -23,6 +23,7 @@
             <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
             <li class="nav-item"><a class="nav-link" th:href="@{/available_books}">Available Books</a></li>
             <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/my_books}">My Cart</a></li>
+            <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link text-danger" th:href="@{/wishlist}"><i class="fa-solid fa-heart me-1"></i>Wishlist</a></li>
             <li class="nav-item" sec:authorize="isAuthenticated()"><a class="nav-link" th:href="@{/orders}">My Orders</a></li>
             <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a class="nav-link active text-danger fw-bold" th:href="@{/admin/dashboard}">Admin Dashboard</a></li>
             <li class="nav-item" sec:authorize="!isAuthenticated()">
@@ -72,14 +73,19 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label for="price" class="form-label fw-semibold">Price ($)</label>
                         <input type="text" class="form-control form-control-custom" id="price" name="price" placeholder="e.g. 19.99" required>
                     </div>
                     
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label for="category" class="form-label fw-semibold">Category</label>
                         <input type="text" class="form-control form-control-custom" id="category" name="category" placeholder="e.g. Fiction, History, Kids" required>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="stock" class="form-label fw-semibold">Initial Stock</label>
+                        <input type="number" class="form-control form-control-custom" id="stock" name="stock" value="50" min="0" required>
                     </div>
                 </div>
 

@@ -38,26 +38,37 @@ public class MyBookListController {
 	public String updateCartQuantity(
 			@RequestParam("id") int cartItemId,
 			@RequestParam("quantity") int quantity,
-			Principal principal) {
+			Principal principal,
+			org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
 		if (principal == null) {
 			return "redirect:/login";
 		}
 		User user = userService.findByUsername(principal.getName());
-		service.updateQuantity(cartItemId, quantity, user);
+		try {
+			service.updateQuantity(cartItemId, quantity, user);
+		} catch (Exception ex) {
+			redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+		}
 		return "redirect:/my_books";
 	}
 
 	@PostMapping("/cart/checkout")
-	public String checkout(Principal principal, Model model) {
+	public String checkout(Principal principal, org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
 		if (principal == null) {
 			return "redirect:/login";
 		}
 		User user = userService.findByUsername(principal.getName());
-		Order order = service.checkout(user);
-		if (order == null) {
-			return "redirect:/my_books?error=empty";
+		try {
+			Order order = service.checkout(user);
+			if (order == null) {
+				redirectAttributes.addFlashAttribute("errorMessage", "Cannot checkout an empty cart!");
+				return "redirect:/my_books";
+			}
+			return "redirect:/orders?success";
+		} catch (Exception ex) {
+			redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+			return "redirect:/my_books";
 		}
-		return "redirect:/orders?success";
 	}
 
 	@GetMapping("/orders")
@@ -68,5 +79,23 @@ public class MyBookListController {
 		User user = userService.findByUsername(principal.getName());
 		model.addAttribute("orders", service.getUserOrders(user));
 		return "orders";
+	}
+
+	@GetMapping("/orders/invoice/{id}")
+	public String getOrderInvoice(@PathVariable("id") Long id, Model model, Principal principal) {
+		if (principal == null) {
+			return "redirect:/login";
+		}
+		User user = userService.findByUsername(principal.getName());
+		Order order = service.getOrderById(id);
+		if (order == null) {
+			return "redirect:/orders";
+		}
+		boolean isAdmin = user.getRoles() != null && user.getRoles().contains("ADMIN");
+		if (!order.getUser().getId().equals(user.getId()) && !isAdmin) {
+			return "redirect:/access-denied";
+		}
+		model.addAttribute("order", order);
+		return "orderInvoice";
 	}
 }
